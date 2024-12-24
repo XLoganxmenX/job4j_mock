@@ -204,3 +204,5 @@ Smoke-тесты:
 - Notification сервис - http://localhost:9920/swagger-ui/index.html
 
 ___
+
+edit by XLoganxmenX
