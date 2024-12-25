@@ -6,14 +6,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import ru.job4j.site.dto.InterviewDTO;
 import ru.job4j.site.dto.ProfileDTO;
 import ru.job4j.site.service.*;
 
 import javax.servlet.http.HttpServletRequest;
 
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static ru.job4j.site.controller.RequestResponseTools.getToken;
@@ -27,6 +26,7 @@ public class IndexController {
     private final AuthService authService;
     private final NotificationService notifications;
     private final ProfilesService profilesService;
+    private final TopicsService topicsService;
 
     @GetMapping({"/", "index"})
     public String getIndexPage(Model model, HttpServletRequest req) throws JsonProcessingException {
@@ -53,8 +53,25 @@ public class IndexController {
                 .collect(Collectors.toSet());
         Map<Integer, String> usernames = profiles.stream()
                 .collect(Collectors.toMap(ProfileDTO::getId, ProfileDTO::getUsername));
+        Map<Integer, Long> interviewsCntByCategory = getMapOfCategoryAndTopicCount(interviews);
         model.addAttribute("new_interviews", interviews);
         model.addAttribute("usernames", usernames);
+        model.addAttribute("interviewsCount", interviewsCntByCategory);
         return "index";
+    }
+
+    private Map<Integer, Long> getMapOfCategoryAndTopicCount(List<InterviewDTO> interviews) {
+        return interviews.stream()
+                .map(interview -> {
+                    try {
+                        return topicsService.getById(interview.getTopicId());
+                    } catch (Exception e) {
+                        log.error("Error when get Topic: {}", interview.getTopicId(), e);
+                        return null;
+                    }
+                })
+                .filter(Objects::nonNull)
+                .map(topic -> topic.getCategory().getId())
+                .collect(Collectors.groupingBy(categoryId -> categoryId, Collectors.counting()));
     }
 }

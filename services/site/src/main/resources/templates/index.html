@@ -107,7 +107,9 @@
                                 </small>
                             </td>
                             <td>
-                                <span class="badge bg-success">Новых: 100</span>
+                                <span class="badge bg-success"
+                                      th:text="'Новых: ' + (${interviewsCount.containsKey(category.id) ? interviewsCount.get(category.id) : 0})">
+                                </span>
                             </td>
                         </tr>
                         </tbody>
