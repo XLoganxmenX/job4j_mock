@@ -3,11 +3,10 @@ package ru.checkdev.auth.web.controller;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import ru.checkdev.auth.dto.ProfileDTO;
+import ru.checkdev.auth.dto.request.ProfileNotificationReqDTO;
+import ru.checkdev.auth.dto.response.ProfileNotificationRespDTO;
 import ru.checkdev.auth.service.ProfileService;
 
 import java.util.List;
@@ -54,5 +53,14 @@ public class ProfileController {
         return new ResponseEntity<>(
                 profiles,
                 profiles.isEmpty() ? HttpStatus.NO_CONTENT : HttpStatus.OK);
+    }
+
+    @PostMapping("/find")
+    public ResponseEntity<ProfileNotificationRespDTO> findProfileByEmailAndPassword(
+                                                                @RequestBody ProfileNotificationReqDTO requestDTO) {
+        var profileDto = profileService.findProfileByEmailAndPassword(requestDTO.getEmail(), requestDTO.getPassword());
+        return new ResponseEntity<>(
+                profileDto.orElse(new ProfileNotificationRespDTO()),
+                profileDto.isEmpty() ? HttpStatus.NOT_FOUND : HttpStatus.OK);
     }
 }

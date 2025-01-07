@@ -6,6 +6,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 import ru.checkdev.notification.domain.PersonDTO;
+import ru.checkdev.notification.domain.ProfileReqDTO;
+import ru.checkdev.notification.domain.ProfileRespDTO;
 
 /**
  * 3. Мидл
@@ -36,6 +38,16 @@ public class TgAuthCallWebClint {
                 .retrieve()
                 .bodyToMono(PersonDTO.class)
                 .doOnError(err -> log.error("API not found: {}", err.getMessage()));
+    }
+
+    public Mono<ProfileRespDTO> getProfile(String url, ProfileReqDTO profileDto) {
+        return webClient
+                .post()
+                .uri(url)
+                .bodyValue(profileDto)
+                .retrieve()
+                .bodyToMono(ProfileRespDTO.class)
+                .doOnError(err -> log.error("authWebClient getProfile error: {}", err.getMessage()));
     }
 
     /**
