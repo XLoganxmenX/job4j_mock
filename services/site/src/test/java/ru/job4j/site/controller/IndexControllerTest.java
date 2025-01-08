@@ -57,7 +57,7 @@ class IndexControllerTest {
     @BeforeEach
     void initTest() {
         this.indexController = new IndexController(
-                categoriesService, interviewsService, authService, notificationService, profilesService
+                categoriesService, interviewsService, authService, notificationService, profilesService, topicsService
         );
     }
 
@@ -79,6 +79,7 @@ class IndexControllerTest {
         topicDTO2.setName("topic2");
         var cat1 = new CategoryDTO(1, "name1");
         var cat2 = new CategoryDTO(2, "name2");
+        topicDTO1.setCategory(cat1);
         var listCat = List.of(cat1, cat2);
         var firstInterview = new InterviewDTO(1, 1, 1, 1,
                 "interview1", "description1", "contact1",
@@ -99,6 +100,8 @@ class IndexControllerTest {
         when(interviewsService.getByType(1)).thenReturn(listInterviews);
         when(profilesService.getProfileById(1)).thenReturn(Optional.of(firstSubmitter));
         when(profilesService.getProfileById(2)).thenReturn(Optional.of(secondSubmitter));
+        when(topicsService.getById(1)).thenReturn(topicDTO1);
+        var interviewsCntByCategory = Map.of(cat1.getId(), 2L);
         var listBread = List.of(new Breadcrumb("Главная", "/"));
         var model = new ConcurrentModel();
         var view = indexController.getIndexPage(model, null);
@@ -107,6 +110,7 @@ class IndexControllerTest {
         var actualUserInfo = model.getAttribute("userInfo");
         var actualInterviews = model.getAttribute("new_interviews");
         var actualUsernames = model.getAttribute("usernames");
+        var actualNewInterviews = model.getAttribute("interviewsCount");
 
         assertThat(view).isEqualTo("index");
         assertThat(actualCategories).usingRecursiveComparison().isEqualTo(listCat);
@@ -114,5 +118,6 @@ class IndexControllerTest {
         assertThat(actualUserInfo).isNull();
         assertThat(actualInterviews).usingRecursiveComparison().isEqualTo(listInterviews);
         assertThat(actualUsernames).usingRecursiveComparison().isEqualTo(usernames);
+        assertThat(actualNewInterviews).usingRecursiveComparison().isEqualTo(interviewsCntByCategory);
     }
 }
