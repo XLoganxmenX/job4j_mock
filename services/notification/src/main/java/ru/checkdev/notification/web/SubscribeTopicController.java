@@ -3,6 +3,7 @@ package ru.checkdev.notification.web;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.web.bind.annotation.*;
 import ru.checkdev.notification.domain.SubscribeTopic;
 import ru.checkdev.notification.service.SubscribeTopicService;
@@ -20,19 +21,13 @@ public class SubscribeTopicController {
         return new ResponseEntity<>(list, HttpStatus.OK);
     }
 
-    @PostMapping("/add")
-    public ResponseEntity<SubscribeTopic> toAddSubscribeTopic(
-            @RequestBody SubscribeTopic subscribetopic
-    ) {
-        var created = service.save(subscribetopic);
-        return new ResponseEntity<>(created, HttpStatus.CREATED);
+    @KafkaListener(topics = "${queue.topic.substopic.add}")
+    public void toAddSubscribeTopic(SubscribeTopic subscribetopic) {
+        service.save(subscribetopic);
     }
 
-    @PostMapping("/delete")
-    public ResponseEntity<SubscribeTopic> toDeleteSubscribeTopic(
-            @RequestBody SubscribeTopic subscribeTopic
-    ) {
-        var deleted = service.delete(subscribeTopic);
-        return new ResponseEntity<>(deleted, HttpStatus.OK);
+    @KafkaListener(topics = "${queue.topic.substopic.delete}")
+    public void toDeleteSubscribeTopic(SubscribeTopic subscribeTopic) {
+        service.delete(subscribeTopic);
     }
 }

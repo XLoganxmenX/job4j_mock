@@ -3,6 +3,9 @@ package ru.job4j.site.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import ru.job4j.site.dto.SubscribeCategory;
 import ru.job4j.site.dto.SubscribeTopicDTO;
@@ -13,18 +16,27 @@ import java.util.List;
 
 @Service
 public class NotificationService {
-    public void addSubscribeCategory(String token, int userId, int categoryId) throws JsonProcessingException {
-        SubscribeCategory subscribeCategory = new SubscribeCategory(userId, categoryId);
-        var mapper = new ObjectMapper();
-        var out = new RestAuthCall("http://localhost:9920/subscribeCategory/add").post(
-                token, mapper.writeValueAsString(subscribeCategory));
+    @Autowired
+    private KafkaTemplate<String, Object> kafkaTemplate;
+
+    @Value("${queue.notification.topic.subscategory.add}")
+    private String addSubscribeCategoryQueue;
+
+    @Value("${queue.notification.topic.subscategory.delete}")
+    private String deleteSubscribeCategoryQueue;
+
+    @Value("${queue.notification.topic.substopic.add}")
+    private String addSubscribeTopicQueue;
+
+    @Value("${queue.notification.topic.substopic.delete}")
+    private String deleteSubscribeTopicQueue;
+
+    public void addSubscribeCategory(int userId, int categoryId) {
+        kafkaTemplate.send(addSubscribeCategoryQueue, new SubscribeCategory(userId, categoryId));
     }
 
-    public void deleteSubscribeCategory(String token, int userId, int categoryId) throws JsonProcessingException {
-        SubscribeCategory subscribeCategory = new SubscribeCategory(userId, categoryId);
-        var mapper = new ObjectMapper();
-        var out = new RestAuthCall("http://localhost:9920/subscribeCategory/delete").post(
-                token, mapper.writeValueAsString(subscribeCategory));
+    public void deleteSubscribeCategory(int userId, int categoryId) {
+        kafkaTemplate.send(deleteSubscribeCategoryQueue, new SubscribeCategory(userId, categoryId));
     }
 
     public UserDTO findCategoriesByUserId(int id) throws JsonProcessingException {
@@ -35,18 +47,12 @@ public class NotificationService {
         return new UserDTO(id, list);
     }
 
-    public void addSubscribeTopic(String token, int userId, int topicId) throws JsonProcessingException {
-        SubscribeTopicDTO subscribeTopicDTO = new SubscribeTopicDTO(userId, topicId);
-        var mapper = new ObjectMapper();
-        var out = new RestAuthCall("http://localhost:9920/subscribeTopic/add").post(
-                token, mapper.writeValueAsString(subscribeTopicDTO));
+    public void addSubscribeTopic(int userId, int topicId) {
+        kafkaTemplate.send(addSubscribeTopicQueue, new SubscribeTopicDTO(userId, topicId));
     }
 
-    public void deleteSubscribeTopic(String token, int userId, int topicId) throws JsonProcessingException {
-        SubscribeTopicDTO subscribeTopic = new SubscribeTopicDTO(userId, topicId);
-        var mapper = new ObjectMapper();
-        var out = new RestAuthCall("http://localhost:9920/subscribeTopic/delete").post(
-                token, mapper.writeValueAsString(subscribeTopic));
+    public void deleteSubscribeTopic(int userId, int topicId) {
+        kafkaTemplate.send(deleteSubscribeTopicQueue, new SubscribeTopicDTO(userId, topicId));
     }
 
     public UserTopicDTO findTopicByUserId(int id) throws JsonProcessingException {
