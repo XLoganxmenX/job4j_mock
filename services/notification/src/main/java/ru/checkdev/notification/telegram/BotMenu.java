@@ -5,6 +5,7 @@ import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.checkdev.notification.telegram.action.Action;
+import ru.checkdev.notification.telegram.action.MissAction;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -51,6 +52,9 @@ public class BotMenu extends TelegramLongPollingBot {
             } else if (bindingBy.containsKey(chatId)) {
                 var msg = actions.get(bindingBy.get(chatId)).callback(update.getMessage());
                 bindingBy.remove(chatId);
+                send(msg);
+            } else {
+                var msg = new MissAction().callback(update.getMessage());
                 send(msg);
             }
         }

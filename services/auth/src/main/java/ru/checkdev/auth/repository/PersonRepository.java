@@ -11,6 +11,7 @@ import ru.checkdev.auth.domain.Photo;
 import ru.checkdev.auth.dto.ProfileDTO;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author parsentev
@@ -19,6 +20,9 @@ import java.util.List;
 public interface PersonRepository extends CrudRepository<Profile, Integer> {
 
     Profile findByEmail(String email);
+
+    @Query("select p from profile p where p.email = :email")
+    Optional<Profile> findOptionalProfileByEmail(@Param("email") String email);
 
     Profile findByEmailAndUsername(String email, String username);
 
