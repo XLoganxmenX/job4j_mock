@@ -31,6 +31,10 @@ public class NotificationService {
     @Value("${queue.notification.topic.substopic.delete}")
     private String deleteSubscribeTopicQueue;
 
+    @Value("${service.ntf}")
+    private String ntfServiceUrl;
+
+
     public void addSubscribeCategory(int userId, int categoryId) {
         kafkaTemplate.send(addSubscribeCategoryQueue, new SubscribeCategory(userId, categoryId));
     }
@@ -40,7 +44,7 @@ public class NotificationService {
     }
 
     public UserDTO findCategoriesByUserId(int id) throws JsonProcessingException {
-        var text = new RestAuthCall("http://localhost:9920/subscribeCategory/" + id).get();
+        var text = new RestAuthCall(ntfServiceUrl + "/subscribeCategory/" + id).get();
         var mapper = new ObjectMapper();
         List<Integer> list = mapper.readValue(text, new TypeReference<>() {
         });
@@ -56,7 +60,7 @@ public class NotificationService {
     }
 
     public UserTopicDTO findTopicByUserId(int id) throws JsonProcessingException {
-        var text = new RestAuthCall("http://localhost:9920/subscribeTopic/" + id).get();
+        var text = new RestAuthCall(ntfServiceUrl + "/subscribeTopic/" + id).get();
         var mapper = new ObjectMapper();
         List<Integer> list = mapper.readValue(text, new TypeReference<>() {
         });

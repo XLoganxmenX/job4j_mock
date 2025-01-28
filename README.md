@@ -202,7 +202,12 @@ Smoke-тесты:
 - Desc сервис - http://localhost:9902/swagger-ui/index.html
 - Mock сервис - http://localhost:9912/swagger-ui/index.html
 - Notification сервис - http://localhost:9920/swagger-ui/index.html
-
 ___
+
+### Запуск через Docker
+
+1) Перенести файлы в рабочую директорию и открыть в ней терминал
+2) Ввести в терминале "**Docker-compose build**" - дождаться сборки проекта
+3) Ввести в терминале "**Docker-compose up**" - дождаться запуска всех сервисов и БД
 
 edit by XLoganxmenX

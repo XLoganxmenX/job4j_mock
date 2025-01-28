@@ -1,0 +1,121 @@
+version: "3.9"
+services:
+  authdb:
+    image: postgres
+    container_name: authdb
+    environment:
+      - POSTGRES_DB=cd_auth
+      - POSTGRES_PASSWORD=compose-postgres-authdb
+      - POSTGRES_USER=compose-postgres-authdb
+      - PGDATA=/var/lib/postgresql/data
+      - NTF_SERVICE=http://ntf:9920
+    volumes:
+      - ./db/authdb/data:/var/lib/postgresql/data
+    restart: always
+  auth:
+    container_name: auth
+    build:
+      context: ./services/auth/
+      dockerfile: Dockerfile
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://authdb:5432/cd_auth
+      - SPRING_DATASOURCE_USERNAME=compose-postgres-authdb
+      - SPRING_DATASOURCE_PASSWORD=compose-postgres-authdb
+    ports:
+      - "9900:9900"
+    depends_on:
+      - authdb
+  ntfdb:
+    image: postgres
+    container_name: ntfdb
+    environment:
+      - POSTGRES_DB=cd_ntf
+      - POSTGRES_PASSWORD=compose-postgres-ntfdb
+      - POSTGRES_USER=compose-postgres-ntfdb
+      - PGDATA=/var/lib/postgresql/data
+    volumes:
+      - ./db/ntfdb/data:/var/lib/postgresql/data
+    restart: always
+  ntf:
+    container_name: ntf
+    build:
+      context: ./services/notification/
+      dockerfile: Dockerfile
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://ntfdb:5432/cd_ntf
+      - SPRING_DATASOURCE_USERNAME=compose-postgres-ntfdb
+      - SPRING_DATASOURCE_PASSWORD=compose-postgres-ntfdb
+      - AUTH_SERVICE=http://auth:9900
+      - SITE_LOGIN_URL=http://site:8080/login
+      - OAUTH_USERINFO_URI=http://auth:9900/user
+    ports:
+      - "9920:9920"
+    depends_on:
+      - ntfdb
+  descdb:
+    image: postgres
+    container_name: descdb
+    environment:
+      - POSTGRES_DB=cd_desc
+      - POSTGRES_PASSWORD=compose-postgres-descdb
+      - POSTGRES_USER=compose-postgres-descdb
+      - PGDATA=/var/lib/postgresql/data
+    volumes:
+      - ./db/descdb/data:/var/lib/postgresql/data
+    restart: always
+  desc:
+    container_name: desc
+    build:
+      context: ./services/desc
+      dockerfile: Dockerfile
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://descdb:5432/cd_desc
+      - SPRING_DATASOURCE_USERNAME=compose-postgres-descdb
+      - SPRING_DATASOURCE_PASSWORD=compose-postgres-descdb
+      - OAUTH_USERINFO_URI=http://auth:9900/user
+      - NTF_SERVICE=http://ntf:9920
+    ports:
+      - "9902:9902"
+    depends_on:
+      - descdb
+  mockdb:
+    image: postgres
+    container_name: mockdb
+    environment:
+      - POSTGRES_DB=mock
+      - POSTGRES_PASSWORD=compose-postgres-mockdb
+      - POSTGRES_USER=compose-postgres-mockdb
+      - PGDATA=/var/lib/postgresql/data
+    volumes:
+      - ./db/mockdb/data:/var/lib/postgresql/data
+    restart: always
+  mock:
+    container_name: mock
+    build:
+      context: ./services/mock
+      dockerfile: Dockerfile
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://mockdb:5432/mock
+      - SPRING_DATASOURCE_USERNAME=compose-postgres-mockdb
+      - SPRING_DATASOURCE_PASSWORD=compose-postgres-mockdb
+      - OAUTH_USERINFO_URI=http://auth:9900/user
+      - NTF_SERVICE=http://ntf:9920
+    ports:
+      - "9912:9912"
+    depends_on:
+      - mockdb
+  site:
+    container_name: site
+    build:
+      context: ./services/site
+      dockerfile: Dockerfile
+    environment:
+      - AUTH_SERVICE=http://auth:9900
+      - AUTH_SERVICE_PING=http://auth:9900/ping
+      - OAUTH_USERINFO_URI=http://auth:9900/user
+      - OAUTH_TOKEN_URI=http://auth:9900/oauth/token
+      - MOCK_SERVICE=http://mock:9912
+      - DESC_SERVICE=http://desc:9902
+      - NTF_SERVICE=http://ntf:9920
+    ports:
+      - "8080:8080"
